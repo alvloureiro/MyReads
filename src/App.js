@@ -7,51 +7,38 @@ import BookShelves from "./components/BookShelves";
 
 class BooksApp extends Component {
   state = {
-    books: [],
-    shelves: [
-      {
-        displayName: "Currently Reading",
-        name: "currentlyReading"
-      },
-      {
-        displayName: "Want to Read",
-        name: "wantToRead"
-      },
-      {
-        displayName: "Read",
-        name: "read"
-      }
-    ]
+    books: []
   };
 
   componentDidMount() {
     BooksAPI.getAll().then(books => {
-      console.log(books);
       this.setState({ books });
     });
   }
 
-  changeBookShelf(book, shelf) {
-    BooksAPI.update(book, shelf).then(book => {
-      this.setState(state => ({ books: state.books.concat(book) }));
+  changeBookShelf = (book, shelf) => {
+    BooksAPI.update(book, shelf).then(result => {
+      if (result) {
+        BooksAPI.getAll().then(books => {
+          this.setState({ books });
+        });
+      }
     });
-  }
+  };
 
   render() {
+    const { books } = this.state;
     return (
       <div className="app">
         <Route
           exact
           path="/"
-          render={() => (
-            <BookShelves
-              shelves={this.state.shelves}
-              books={this.state.books}
-              onChangeBookShelf={this.changeBookShelf}
-            />
-          )}
+          render={() => <BookShelves books={books} onChangeBookShelf={this.changeBookShelf} />}
         />
-        <Route path="/search" render={() => <SearchBar books={this.state.books} />} />
+        <Route
+          path="/search"
+          render={() => <SearchBar onChangeBookShelf={this.changeBookShelf} />}
+        />
       </div>
     );
   }
